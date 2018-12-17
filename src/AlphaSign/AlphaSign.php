@@ -22,7 +22,7 @@
 
 
 
-		public function send($command) {
+		public function sendRaw($command) {
 			return $this->connection->send("\x01" . $this->address . "\x02". $command);
 		}
 
