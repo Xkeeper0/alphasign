@@ -2,10 +2,21 @@
 
 	require "src/include.php";
 	use X\AlphaSign\AlphaSign;
-	$sign	= new AlphaSign(6003);
+	use X\AlphaSign\Connection\Network;
+	$sign	= new AlphaSign(new Network("localhost", 6003));
 
-//	var_dump($sign->writeCommand("AA\x1b b". "about 18 characters\r\n- @\x1a1your_username"));
 
+//	$m		= "-";
+//	$s		= "u";
+
+//	var_dump($sign->writeCommand("AA\x1b b". $m . "\r\n- @\x1a1". $s));
+
+		var_dump($sign->send("AAbbeep boop\r\nbep bop"));
+
+
+//	var_dump($sign->writeCommand("AA\x1b b\x1a5bepis\x1a3\r\nfor \x1a1tv game"));
+
+	/*
 	$np	= getnp();
 	while (true) {
 		var_dump($sign->writeCommand("AA\x1b\"bNow Playing:\x1b&a". $np));
@@ -15,14 +26,13 @@
 			sleep(1);
 			print ".";
 		}
-		
+
 	}
 
 	function getnp() {
 		return substr(file_get_contents("../../np.txt"), 3);
 	}
 
-	/*
 
 	$read		= "";
 	print "R";

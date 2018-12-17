@@ -1,40 +1,30 @@
 <?php
 
 	namespace X\AlphaSign;
+	use X\AlphaSign\Connection\Connection;
+	use X\AlphaSign\Protocol\Standard;
 
 	class AlphaSign {
 
-		protected $socket		= null;
-		protected $header		= null;
+		protected $connection	= null;
+		protected $address		= "Z00";
 
-		public function __construct($port) {
-			$this->socket	= fsockopen("localhost", $port);
-			stream_set_timeout($this->socket, 5);
-
-			$this->header	= "\0\0\0\0\0\x01Z00\x02";
+		public function __construct($connection, $protocol = Standard::class) {
+			$this->connection	= new $protocol($connection);
 		}
 
-		public function __destruct() {
-			fclose($this->socket);
+		public function setAddress($type, $id) {
+			// Z (all signs) or ! (all signs w/ "RECEIVED OK" message)
+			// ID = two character hex string, ? = wildcard, 00=all
+			$this->address	= $type . $id;
 		}
 
-		public function writeCommand($command) {
-			$out	= fwrite($this->socket, $this->header . $command . "\x04");
-			return $out;
+
+		public function send($command) {
+			return $this->connection->send("\x01" . $this->address . "\x02". $command);
 		}
 
-		public function read() {
-
-			$read		= "";
-			while (!feof($this->socket)) {
-				$in		= fread($this->socket, 8192);
-				$read	.= $in;
-				if (strpos($in, "\x04") !== false) {
-					break;
-				}
-				if (strlen($in) == 0) break;
-			}
-			$read	= ltrim($read, "\0");
-			return $read;
+		public function receive() {
+			return $this->connection->receive();
 		}
 	}
