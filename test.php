@@ -1,39 +1,28 @@
 <?php
 
+	require "src/include.php";
+	use X\AlphaSign\AlphaSign;
 	$sign	= new AlphaSign(6003);
-	var_dump($sign->writeCommand("AAanother silly\r\ntest message"));
 
+//	var_dump($sign->writeCommand("AA\x1b b". "about 18 characters\r\n- @\x1a1your_username"));
+
+	$np	= getnp();
+	while (true) {
+		var_dump($sign->writeCommand("AA\x1b\"bNow Playing:\x1b&a". $np));
+
+		$oldnp	= $np;
+		while (($np = getnp()) === $oldnp) {
+			sleep(1);
+			print ".";
+		}
+		
+	}
+
+	function getnp() {
+		return substr(file_get_contents("../../np.txt"), 3);
+	}
 
 	/*
-	$f	= fsockopen("localhost", 6003);
-	stream_set_timeout($f, 5);
-	print "ok\n";
-
-
-	$init	= str_repeat("\0", 5);
-
-	$start	= "\x01";
-	$type	= "Z";
-	$addr	= "00";
-	$header	= $start . $type . $addr . "\x02";
-
-#	$command	= "(";
-#	$func	= "1";
-
-//	$msg	= "E,";
-
-	$msg	= "BA";
-	$end	= "\x04";
-
-	$packet	= $init . $header . $msg . $end;
-
-
-	$out	= fwrite($f, $packet);
-	var_dump($out);
-	var_dump(bin2hex($packet));
-
-
-//	die();
 
 	$read		= "";
 	print "R";
@@ -53,40 +42,3 @@
 	var_dump(bin2hex($read));
 	fclose($f);
 	*/
-
-	class AlphaSign {
-
-		protected $socket		= null;
-		protected $header		= null;
-
-		public function __construct($port) {
-			$this->socket	= fsockopen("localhost", $port);
-			stream_set_timeout($this->socket, 5);
-
-			$this->header	= "\0\0\0\0\0\x01Z00\x02";
-		}
-
-		public function __destruct() {
-			fclose($this->socket);
-		}
-
-		public function writeCommand($command) {
-			$out	= fwrite($this->socket, $this->header . $command . "\x04");
-			return $out;
-		}
-
-		public function read() {
-
-			$read		= "";
-			while (!feof($this->socket)) {
-				$in		= fread($this->socket, 8192);
-				$read	.= $in;
-				if (strpos($in, "\x04") !== false) {
-					break;
-				}
-				if (strlen($in) == 0) break;
-			}
-			$read	= ltrim($read, "\0");
-			return $read;
-		}
-	}
