@@ -5,6 +5,8 @@
 
 	class ReadText extends Command {
 
+		const RETURNS			= WriteText::class;
+
 		protected $fileLabel	= null;
 
 		public function __construct($fileLabel) {

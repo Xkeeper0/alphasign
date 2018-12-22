@@ -14,7 +14,10 @@
 		}
 
 		public function receive() {
-			return ltrim($this->connection->read());
+			$x	= ltrim($this->connection->read());
+
+			return substr($x, strpos($x, "\x02") + 1, strpos($x, "\x03") - strpos($x, "\x02") - 1);
+
 		}
 
 	}

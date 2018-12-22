@@ -27,7 +27,13 @@
 		}
 
 		public function sendCommand(Command $command) {
-			return $this->connection->send("\x01" . $this->address . "\x02". $command->output());
+			$ret	= $this->connection->send("\x01" . $this->address . "\x02". $command->output());
+			if ($command::RETURNS !== null) {
+				$in		= $this->receive();
+				return ($command::RETURNS)::fromString($in);
+			} else {
+				return $ret;
+			}
 		}
 
 		public function receive() {
