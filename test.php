@@ -1,8 +1,10 @@
 <?php
 
 	date_default_timezone_set('America/Los_Angeles');
-
-	require "secrets/home.php";
+/*
+*/
+	require "secrets/honk.php";
+	require "junk/home.php";
 	$house	= getHome();
 	$househumidity	= sprintf("%3d%%", $house['humidity']);
 	$housetemp		= sprintf("%4.1f", $house['temperature']);
@@ -12,9 +14,30 @@
 	$temp		= sprintf("%4.1f", $weather->main->temp);
 	$humidity	= sprintf("%3d%%", $weather->main->humidity);
 	$windspeed	= sprintf("%4.1f", $weather->wind->speed);
-	$winddir1	= floor(($weather->wind->deg + 11.25) / 16) % 16;
+	$winddir1	= floor(($weather->wind->deg + 11.25) / (360 / 16)) % 16;
 	$winddirA	= ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 	$winddir	= $winddirA[$winddir1];
+
+
+	$forecast	= getForecast();
+	$forecast15	= "\x1b p\x1a1* Weather Forecast *\x1a3\r\n15-hour outlook\r\n\x1b j";
+	foreach ($forecast['15-hour'] as $ft) {
+		$forecast15	.=
+				"\x1a3". sprintf("%8s", $ft['time']) ."   \x1a1Temp \x1a3". sprintf("%4.1f", $ft['temp']) ."\x1a1\xa9F\x1a3\r\n".
+				"$ft[weather]\r\n";
+	}
+
+	$forecast3	= "\x1b p\x1a1* Weather Forecast *\x1a3\r\n3-day forecast\r\n";
+	foreach ($forecast['3-day'] as $ft) {
+		$forecast3	.=
+				"\x1b\"e\x1a1$ft[date]\x1a3\x09".
+				"\x1b&e$ft[weather]\r\n".
+				"\x1a1High \x1a3". sprintf("%4.1f", $ft['temp']['max']) ."\x1a1\xa9F  ".
+				"\x1a1Low \x1a3". sprintf("%4.1f", $ft['temp']['min']) ."\x1a1\xa9F\x1a3\r\n\x09".
+				"";
+	}
+
+    print "done building stuff, sending\n";
 
 
 	require "src/include.php";
@@ -27,16 +50,25 @@
 	$sign->sendRaw("E;". date("mdy"));
 	$sign->sendRaw("E ". date("Hi"));
 	$sign->sendRaw("E&". (date("w") + 1));
+	/*
+		$sign->sendRaw(
+			"AAdeploy smooth jazz when ready".
+			""
+		);
 
 
+	die();
+	*/
 	$sign->sendRaw(
-		"AA\x1b j\x19\x1a1* Current time *\x1a3\r\n\x0b0 \x13\r\n".
+		"AA\x1b j\x18\x1a1* Current time *\x1a3\r\n\x0b0 \x13\r\n".
 		"\x1b p\x1a1* Current Conditions *\x1a3\r\nHenderson, NV\r\n".
-		"\x1b e$condition\r\n\x1a1Winds\x1a3   {$windspeed} mph   $winddir\r\n".
+		"\x1b e$condition\r\n\x1a1Winds\x1a3   {$windspeed} \x1a1mph\x1a3   $winddir\r\n".
 		"\x1a1Temperature\x1a3    $temp\x1a1\xa9F\x1a3\r\n\x1a1Rel.Humidity\x1a3    $humidity  \r\n".
+		$forecast15 .
+		$forecast3 .
 		"\x1b p\x1a1* Inside Conditions *\x1a3\r\nThe Romhaus\r\n".
 		"\x1b e\x1a1Temperature\x1a3    $housetemp\x1a1\xa9F\x1a3\r\n\x1a1Rel.Humidity\x1a3    $househumidity  \r\n".
-//		"\x1a1* Inside Conditions *\x1a3\r\n$housetemp\x1a1\xa9F\x1a3  -  $househumidity \x1a1RH\x1a3\r\n".
+		"Data updated\r\n". date("m/d/y g:i A") ."\r\n".
 		""
 	);
 
