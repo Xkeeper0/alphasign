@@ -13,8 +13,6 @@ def tx(dev):
 
     tx_data = bytearray(stdin.buffer.read()) + b'\x04'
 
-    
-
     for byte in tx_header + tx_data:
 	print(byte)
 	endpoint.write(chr(byte))
